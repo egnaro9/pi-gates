@@ -1,6 +1,6 @@
 {
   "name": "pi-gates",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Refusal gates for pi. Halts work that should not happen, before it happens — and fails closed when it cannot tell.",
   "keywords": [
     "pi-package",

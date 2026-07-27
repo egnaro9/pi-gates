@@ -80,3 +80,21 @@ test("declarations are matched case-insensitively and tolerate leading space", (
 test("an empty prompt is not a declaration", () => {
 	assert.equal(decide("", SONNET).allow, true);
 });
+
+
+// ---------------------------------------------------------------------------
+// the armed banner
+// ---------------------------------------------------------------------------
+
+import { banner, GATES, version } from "../extensions/_armed.ts";
+
+test("the banner names every gate and the build it came from", () => {
+	const b = banner("9.9.9");
+	assert.match(b, /pi-gates 9\.9\.9 armed/);
+	for (const g of GATES) assert.ok(b.includes(g), `banner omits ${g}`);
+});
+
+test("version resolves from package.json, not a hardcoded string", () => {
+	// A hardcoded version is exactly how a stale install stays invisible.
+	assert.match(version(), /^\d+\.\d+\.\d+$/);
+});

@@ -10,6 +10,22 @@ pi install git:github.com/egnaro9/pi-gates
 Then `/reload`, or restart Pi. Extensions load once at session start, so an update
 leaves a running session executing the previous version.
 
+Every session opens with a line naming what is armed:
+
+```
+pi-gates 0.2.0 armed: model-gate, git-gate — git commit/push needs APPROVE CHECKPOINT
+```
+
+That line exists because a stale install is silent. Three separate times while
+building this, the code on disk was correct and the running system was not — a
+package behind by nine commits, a session still holding the previous extension
+after an update, an update that no-op'd — and nothing visible distinguished those
+from working. An armed gate you cannot see is indistinguishable from no gate,
+right up until you conclude from a commit going through that the gate is broken,
+or from one being blocked that you are protected when you are not.
+
+**If you do not see that line, the gates are not running.**
+
 ## Why
 
 An agent harness accumulates rules: this role runs on that model, that command
