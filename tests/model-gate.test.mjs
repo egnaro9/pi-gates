@@ -86,11 +86,25 @@ test("an empty prompt is not a declaration", () => {
 // the armed banner
 // ---------------------------------------------------------------------------
 
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+
 import { banner, GATES, version } from "../extensions/_armed.ts";
+
+test("the banner goes to the status bar, never into the conversation", () => {
+	// It landed in the transcript once, and the model announced it would "watch
+	// for the APPROVE CHECKPOINT marker" — describing itself as the enforcement
+	// mechanism. A gate the model thinks it owns is a gate it can be argued out of.
+	const src = readFileSync(
+		join(dirname(fileURLToPath(import.meta.url)), "..", "extensions", "_armed.ts"), "utf8");
+	assert.match(src, /setStatus\(/);
+	assert.doesNotMatch(src, /ui\.notify\(/);
+});
 
 test("the banner names every gate and the build it came from", () => {
 	const b = banner("9.9.9");
-	assert.match(b, /pi-gates 9\.9\.9 armed/);
+	assert.match(b, /pi-gates 9\.9\.9/);
 	for (const g of GATES) assert.ok(b.includes(g), `banner omits ${g}`);
 });
 

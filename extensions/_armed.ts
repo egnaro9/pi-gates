@@ -11,8 +11,19 @@
  * until you conclude from a passing commit that the gate is broken, or worse,
  * conclude from a blocked one that you are protected when you are not.
  *
- * So the gates say what they are and which build they came from, once, on the way
- * in. One line is cheap; a false sense of a guardrail is not.
+ * So the gates say what they are and which build they came from — in the STATUS
+ * BAR, not in the conversation.
+ *
+ * The first version used ctx.ui.notify at session start and the banner landed in
+ * the transcript, where the model read it and announced it would "watch for the
+ * APPROVE CHECKPOINT marker" going forward. That is precisely wrong. The gate is a
+ * technical denial at tool_call; it does not need, use, or benefit from the
+ * model's cooperation, and a model that believes it is responsible for enforcing
+ * the rule is a model that can be argued out of it. Worse, it is a model that will
+ * SOUND like a gate while being nothing of the kind.
+ *
+ * setStatus stays out of context entirely, and stays visible after the banner
+ * would have scrolled away.
  */
 
 import { readFileSync } from "node:fs";
@@ -36,12 +47,16 @@ export function version(): string {
  *  line still claims it, and the mismatch is the thing worth noticing. */
 export const GATES = ["model-gate", "git-gate"] as const;
 
+/** Short enough for a footer. The detail belongs in the block message, which is
+ *  shown at the moment it is relevant. */
 export function banner(v = version()): string {
-	return `pi-gates ${v} armed: ${GATES.join(", ")} — git commit/push needs APPROVE CHECKPOINT`;
+	return `pi-gates ${v}: ${GATES.join(" + ")} armed`;
 }
 
 export default function armed(pi: ExtensionAPI) {
 	pi.on("session_start", (_event, ctx) => {
-		ctx.ui.notify(banner(), "info");
+		// Footer, not conversation. See the note above on why this distinction is
+		// the whole point rather than a cosmetic preference.
+		ctx.ui.setStatus("pi-gates", banner());
 	});
 }
