@@ -1,0 +1,33 @@
+{
+  "name": "pi-gates",
+  "version": "0.1.0",
+  "description": "Refusal gates for pi. Halts work that should not happen, before it happens — and fails closed when it cannot tell.",
+  "keywords": [
+    "pi-package",
+    "pi",
+    "agent",
+    "guardrail",
+    "policy",
+    "safety"
+  ],
+  "license": "MIT",
+  "author": "Erik Hill (https://egnaro9.github.io)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/egnaro9/pi-gates.git"
+  },
+  "pi": {
+    "extensions": [
+      "./extensions"
+    ]
+  },
+  "files": [
+    "extensions",
+    "README.md"
+  ],
+  "devDependencies": {
+    "@earendil-works/pi-coding-agent": "^0.82.1",
+    "@types/node": "^26.1.1",
+    "typescript": "^5.9.3"
+  }
+}
