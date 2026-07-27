@@ -6,6 +6,8 @@ on:
   workflow_dispatch:
 
 jobs:
+  # Mirrors how Pi actually installs this package: production deps only, no build
+  # step, types stripped by node at load. If it fails here it fails for a user.
   test:
     runs-on: ubuntu-latest
     steps:
@@ -14,6 +16,17 @@ jobs:
         with:
           node-version: "22"
       - run: npm install --omit=dev
-      # Node 22 strips the types; no build step, which is also how Pi loads it.
       - run: node --test tests/*.test.mjs
-      - run: npx tsc --noEmit
+
+  # Separate job with dev deps present. `npx tsc` under --omit=dev does not fail —
+  # it fetches an unrelated deprecated package named `tsc` from the registry and
+  # runs that, which is worse than not typechecking at all.
+  types:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm install
+      - run: npx --no-install tsc --noEmit
