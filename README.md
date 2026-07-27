@@ -129,6 +129,32 @@ UserPromptSubmit hook writes this". Pi's equivalent is the `source` check, and i
 is easy to miss — the naive port trusts every `input` event and is grantable by an
 extension.
 
+## What does not port, and why
+
+Two hooks from the original are deliberately absent.
+
+**A blocking stop hook.** The original had a `Stop` hook that refused to let the
+agent finish a turn if it had modified product source without running the
+project's validation script. Pi has no equivalent: `agent_end`, `agent_settled`,
+`turn_start` and `turn_end` are declared `ExtensionHandler<Event>` with no result
+type, so a handler cannot return a decision. `message_end` can replace a message
+but not force a continuation.
+
+This is a real capability gap and not one to paper over. If you need the rule,
+move the enforcement point rather than fake the hook: check the condition in
+`tool_call` before `git commit`, where this package already sits. That is arguably
+better — the original needed a `stop_hook_active` loop guard precisely because
+blocking a stop is awkward — but it is a different gate, not a port, and it should
+be described as one.
+
+**Session-start context injection.** Half of the original's `SessionStart` hook
+existed to write `.runtime_model_<sid>` for the model gate to read back. That half
+is not ported because it is obsolete: `ctx.model` made the file unnecessary. The
+other half injects standing project context, which is a real Pi capability
+(`session_start`, and `before_agent_start` can return a `systemPrompt`) but is not
+a gate and belongs to a harness's own configuration, not to a package about
+refusals.
+
 ## Testing
 
 The policy is a pure function, exported:
