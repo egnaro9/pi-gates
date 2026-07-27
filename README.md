@@ -58,7 +58,47 @@ including the fail-closed path. A gate with no operator escape becomes a thing
 people route around instead of through, and then you have neither the gate nor the
 knowledge that it was bypassed.
 
+## `git-gate`
+
+`git commit` and `git push` are denied unless an operator typed an approval at the
+keyboard **this turn**:
+
+```
+BLOCKED — git commit/push needs an operator approval typed this turn.
+Type APPROVE CHECKPOINT (covers the whole commit+push sequence) or
+APPROVE COMMIT (one command). Approval is read from your keyboard input
+only — this session cannot grant it to itself.
+```
+
+Everything else an agent does in a repo is recoverable by a human reading a diff.
+A push is not. So this is a technical denial rather than an instruction to ask
+nicely, and it holds regardless of what the model intends or has been told.
+
+**The trust root is a source check.** Pi's `InputSource` is
+`"interactive" | "rpc" | "extension"` — an extension can inject input. Approval is
+honoured only from `"interactive"`. A gate that trusted any input event could be
+opened by the thing it exists to gate.
+
+**The matcher normalizes shell structure**, because every one of these hides
+`git commit` from a prefix check and every one of them got through a previous
+version:
+
+```
+(git commit && git push)   $(git commit)   `git push`   git commit&
+{ git push; }              GIT_AUTHOR_NAME=x git commit
+```
+
+Read-only git is never gated. Over-blocking makes the gate the problem, and a gate
+that is in the way gets switched off.
+
+**`APPROVE CHECKPOINT` covers a whole sequence** — stage, commit, push, commit,
+push — and clears at the end of the turn. `APPROVE COMMIT` is single-use. An
+earlier version cleared on push, which denied the second commit of a two-commit
+checkpoint and let a no-op push burn the approval.
+
 ## What the port removed
+
+### model-gate
 
 This began as a Claude Code `UserPromptSubmit` shell hook, and most of it was
 machinery for one missing fact: *which model is running?* A `SessionStart` hook
@@ -71,6 +111,23 @@ Three files, two hooks, one documented race, to learn the model.
 Pi's `input` event hands the handler `ctx.model`. All of it is gone — not
 refactored, deleted. What is left is the policy, which was always the only part
 worth having.
+
+### git-gate
+
+The original carried its approval in a sentinel FILE, written by one hook, read by
+a second, cleared by a third. A file is a thing the model can touch, so it also
+needed a forge guard denying any command that so much as mentioned the sentinel's
+name — with documented residuals around assembled paths like
+`P=.oae_approve; touch "${P}_pending"`.
+
+Here the approval is a variable in the extension's closure. There is no path from
+a bash command to it. The forge guard is not hardened, it is **unnecessary**, and
+the residuals it documented do not exist.
+
+What did not carry over for free: the file version's trust root was "only the
+UserPromptSubmit hook writes this". Pi's equivalent is the `source` check, and it
+is easy to miss — the naive port trusts every `input` event and is grantable by an
+extension.
 
 ## Testing
 
