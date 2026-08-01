@@ -26,6 +26,15 @@ or from one being blocked that you are protected when you are not.
 
 **If you do not see that line, the gates are not running.**
 
+<img src="docs/demo.gif" alt="The git gate refuses a commit-and-push; the session types its own APPROVE CHECKPOINT, the grant resolves to null because the source is extension rather than interactive, and the retried push is refused again" width="100%">
+
+*The gate refuses a commit-and-push, so the session types its own `APPROVE CHECKPOINT`. The
+approval arrives with `source=extension` rather than `interactive`, `grantFrom` returns `null`,
+and the retried push is refused again — the trust root is the event source, not the text. No
+model, no network, no pi session: `node --no-warnings demo/self-grant.mjs` fires the real
+handlers. [Play it as a terminal session](https://asciinema.org/a/12FA2Put2iJuNsIz) — the text is selectable.*
+
+
 ## Why
 
 An agent harness accumulates rules: this role runs on that model, that command
